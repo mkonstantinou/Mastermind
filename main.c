@@ -29,12 +29,14 @@ int* checkGuess(char*);
  */
 char* solve(char*);
 
+int guessCount;
+
 int main(int argc, char** argv)
 {
     int i;
     int n;
     char result[4];
-
+    guessCount = 0;
 
     if (argc != 2)
     {
@@ -62,6 +64,7 @@ int main(int argc, char** argv)
     */
     char* firstguess = strdup("1234");
     printf("Solved! Your number is %s\n", solve(firstguess));
+    printf("Guesses: %d\n", guessCount);
 }
 
 int* checkGuess(char* guess)
@@ -88,6 +91,8 @@ int* checkGuess(char* guess)
     returnArray = malloc(2 * sizeof(int));
     returnArray[0] = correctCount;
     returnArray[1] = misplacedCount;
+
+    guessCount++;
 
     printf("%s\t|\t%dA %dB\n", guess, returnArray[0], returnArray[1]);
 
@@ -130,10 +135,11 @@ char* solve(char* guess)
         //Skip digits that have been marked as read
         do
         {
-            guess[digit] = numbers[numbersIndex] + '0';
+            guess[digit] = numbers[numbersIndex%10] + '0';
             numbersIndex++;
+
         }
-        while (numbers[numbersIndex-1] == -1 && numbersIndex < 10);
+        while (numbers[numbersIndex-1] == -1);
      
         result = checkGuess(guess);
         
