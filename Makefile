@@ -4,7 +4,7 @@ RM=rm -f
 OUTPUT=mastermind
 #
 all: 
-	gcc $(SRC) -o $(OUTPUT)
+	clang $(SRC) -o $(OUTPUT)
 clean:
 	-$(RM) *.o
 	-$(RM) *~
