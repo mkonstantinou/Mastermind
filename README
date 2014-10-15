@@ -1,0 +1,8 @@
+Mastermind
+
+usage: ./mastermind {number}
+
+{number}: a four digit number with digits that do not repeat.  For example, the number "1234" is valid, while the number "1233" is not.
+
+bugs: the program fails on .2% of input, including most (but not all) input "324x"
+

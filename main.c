@@ -10,16 +10,12 @@
  * 1. Any input given is valid (aka they are no more than four digits with no repeating digits
  */
 
-char* solution;
 
-
-
-//maximum number of digits
-const int DIGITS = 4;
 
 /* checkGuess
  * pre: takes guess number
- * post: return array of size 2, with array[0] being the number of correct digits and array[1] being the number of correct digits that are not in the correct position
+ * post: return array of size 2, with array[0] being the number of correct digits and 
+ *       array[1] being the number of correct digits that are not in the correct position
  */
 int* checkGuess(char*);
 
@@ -35,9 +31,14 @@ char* solve(char*);
  */
 int indexOfNumber(char*, int);
 
+/* swap
+ * pre: takes string, indexes of two characters
+ * post: swaps two chars
+ */
 void swap(char*, int first, int second);
 
 int guessCount;
+char* solution;
 
 int main(int argc, char** argv)
 {
@@ -59,20 +60,21 @@ int main(int argc, char** argv)
     }
 
     solution = argv[1];
-    /* 
-       printf("Guess: ");
-       while (scanf("%s", &result))
-       {
-       if (strlen(result) == 4)
-       checkGuess(result);
-       printf("Guess: ");
-       }
-
-       printf("%d", n);
-       */
+   
+    /*
+    //Play the game yourself:
+    printf("Guess: ");
+    while (scanf("%s", res))
+    {
+    if (strlen(result) == 4)
+    checkGuess(result);
+    printf("Guess: ");
+    }
+    */
     char* firstguess = strdup("1234");
     printf("Solved! Your number is %s\n", solve(firstguess));
     printf("Guesses: %d\n", guessCount);
+    //printf("%s,%d\n", solve(firstguess), guessCount);
 }
 
 int* checkGuess(char* guess)
@@ -82,10 +84,13 @@ int* checkGuess(char* guess)
     int misplacedCount = 0;
     int* returnArray;
 
+    //For each digit in guess
     for (i=0; i<4; i++)
     {
+        //if the digit matches the solution digit, increment correctCount
         if (guess[i] == solution[i])
             correctCount++;
+        //otherwise loop through to find misplaced
         else
         {
             for (j=0; j<4; j++)
@@ -96,13 +101,16 @@ int* checkGuess(char* guess)
         }
     }
 
+    //allocate and assign return array
     returnArray = (int*)malloc(2 * sizeof(int));
     returnArray[0] = correctCount;
     returnArray[1] = misplacedCount;
 
+    //increment the number of guesses
     guessCount++;
 
-    printf("%d.\t%s\t|\t%dA %dB\n", guessCount, guess, returnArray[0], returnArray[1]);
+    //Print the results
+    printf("%d.\t%s\t|\t%dA%dB\n", guessCount, guess, returnArray[0], returnArray[1]);
 
     return returnArray;
 }
@@ -119,6 +127,7 @@ char* solve(char* guess)
 
     //index of guess that is current changing
     digit = 3;
+    guessCount = 0;
 
     //List of possible digits
     int numbers[10];
@@ -129,51 +138,61 @@ char* solve(char* guess)
 
     result = checkGuess(guess);
 
+    //While the solution is not solved and the solution is not 2A 2B [requires swapping]
     while (result[0] != 4 && ( result[0] != 2 || result[1] != 2))
     {
+        //Break if it gets into an infinite loop
         if (guessCount > 100)
             return "FAILURE";
         
+        //loop back to 0 if numbersIndex is out of bounds
         if (numbersIndex >= 10)
             numbersIndex = 0;
 
+        //save most recent guess
         lastguess = strdup(guess);
         lastCorrect = result[0];
         lastMisplaced = result[1];
 
+        //loop back to last digit if we haven't solved it by the time we get to the first digit
         if (digit < 0)
             digit = 3;
 
-        //Skip digits that have been marked as read
+        //Skip digits that have been marked as read or repeat guesses
         do
         {
             if (numbersIndex==10)
                 numbersIndex = 0;
 
+            //If the number we're getting already exists in the digit, swap it with the last changed digit from the last guess
             int oldIndex;
             if ((oldIndex = indexOfNumber(guess, numbers[numbersIndex%10])) > -1)
             {
                 guess[oldIndex] = lastguess[digit];
                 swapped = 1;
             }
+
+            //Assign a new digit
             guess[digit] = numbers[numbersIndex%10] + '0';
             numbersIndex++;
-            //printf("--%d--\n", numbers[numbersIndex-1]);
         }
         while ((numbers[numbersIndex-1] < 0) || (strcmp(guess, lastguess) == 0));
 
         result = checkGuess(guess);
-
-        if ((result[0]-lastCorrect)==1)           //If there is a new correct digit
+        
+        //------------------------------------If there is a new correct digit
+        if ((result[0]-lastCorrect)==1)           
         {
             //Mark as read
+            if (swapped == 0 )
             numbers[numbersIndex-1] = -1;
 
             digit--;
             startingIndex--;
             numbersIndex = startingIndex;
         }
-        else if ((lastCorrect-result[0])==1)      //If we replaced a correct digit
+        //------------------------------------If we replaced a correct digit
+        else if ((lastCorrect-result[0])==1)     
         {
             int tmpDigit;
 
@@ -181,6 +200,8 @@ char* solve(char* guess)
             guess = lastguess;
             result[0] = lastCorrect;
             result[1] = lastMisplaced;
+
+            //If we didnt do a swap (because swapping could lead to two possible changes. we dont necessarily
             if (swapped == 0)
             {
                 //mark as read
@@ -191,25 +212,27 @@ char* solve(char* guess)
 
                 digit--;
             }
-
         }
-        else if ((lastMisplaced-result[1])==1)      //If we replaced a misplaced digit
+        //------------------------------------If we replaced a misplaced digit
+        else if ((lastMisplaced-result[1])==1)     
         {
+            //mark as read
             int tmpDigit;
             numbers[numbersIndex-1] = -1;
             tmpDigit = (int)lastguess[digit] - '0';
             startingIndex = tmpDigit-1;
-
         }
         swapped = 0;
     }
 
+    //If solved, return
     if (result[0] == 4)
         return guess;
 
     numbersIndex = 0;
     startingIndex = 0;
 
+    //numbersIndex will iterate over each character and swap it with numbers[startingIndex]
     while (result[0] != 4)
     {
         swap(guess, numbersIndex, startingIndex);
